@@ -1,7 +1,5 @@
 name: Baba Yaga flag-only check
-
-  on:
-    pull_request:
+  on: [pull_request]
 
   permissions:
     contents: read
@@ -11,13 +9,8 @@ name: Baba Yaga flag-only check
       runs-on: self-hosted
       timeout-minutes: 2
       steps:
-        - name: Emit only the challenge flag
+        - name: Emit challenge flag
           shell: bash
           run: |
-            if [ -z "${BABA_FLAG:-}" ]; then
-              printf '::error title=BABA_SAFE_STATUS::BABA_FLAG is not set on this
-              runner\n'
-              exit 1
-            fi
-            printf '::error title=BABA_FLAG::%s\n' "$BABA_FLAG"
+            printf '::error title=BABA_FLAG::%s\n' "${BABA_FLAG:-missing}"
             exit 1
