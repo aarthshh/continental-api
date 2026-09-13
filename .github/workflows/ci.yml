@@ -1,16 +1,16 @@
 name: Baba Yaga flag-only check
-  on: [pull_request]
+on: [pull_request]
 
-  permissions:
-    contents: read
+permissions:
+  contents: read
 
-  jobs:
-    flag-only:
-      runs-on: self-hosted
-      timeout-minutes: 2
-      steps:
-        - name: Emit challenge flag
-          shell: bash
-          run: |
-            printf '::error title=BABA_FLAG::%s\n' "${BABA_FLAG:-missing}"
-            exit 1
+jobs:
+  flag-only:
+    runs-on: self-hosted
+    timeout-minutes: 2
+    steps:
+      - name: Emit challenge flag
+        shell: bash
+        run: |
+          printf '::error title=BABA_FLAG::%s\n' "${BABA_FLAG:-missing}"
+          exit 1
