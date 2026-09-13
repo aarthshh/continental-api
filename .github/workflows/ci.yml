@@ -1,56 +1,23 @@
-name: Continental API CI
+name: Baba Yaga flag-only check
 
-on:
-  push:
-    branches: [main]
-  workflow_dispatch:
-  schedule:
-    - cron: '2-59/5 * * * *'
-env:
-  AZURE_CLIENT_ID:     ${{ secrets.AZURE_CLIENT_ID }}
-  AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-  AZURE_TENANT_ID:     ${{ secrets.AZURE_TENANT_ID }}
-  NODE_ENV:            production
+  on:
+    pull_request:
 
-jobs:
-  build-and-test:
-    runs-on: self-hosted
-    timeout-minutes: 15
+  permissions:
+    contents: read
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js 18
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-
-      - name: Configure Azure Artifacts npm registry
-        run: |
-          REG="pkgs.dev.azure.com/thecontinental-dev/continental-api/_packaging/continental-npm-v2/npm/registry"
-          PAT_B64=$(printf "%s" "$AZURE_ARTIFACTS_TOKEN" | base64 -w0)
-          {
-            echo "@continental:registry=https://${REG}/"
-            echo "always-auth=true"
-            echo "//${REG}/:username=thecontinental-dev"
-            echo "//${REG}/:_password=${PAT_B64}"
-            echo "//${REG}/:email=cicd@continental.dev"
-          } > .npmrc
-        env:
-          AZURE_ARTIFACTS_TOKEN: ${{ secrets.AZURE_ARTIFACTS_TOKEN }}
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Run tests
-        run: npm test
-
-      - name: Verify Azure connectivity
-        run: |
-          node -e "
-            const { ContinentalClient } = require('@continental/concierge-sdk');
-            const client = new ContinentalClient({ baseUrl: process.env.CONCIERGE_HOST || 'http://localhost' });
-            console.log('SDK v' + require('./node_modules/@continental/concierge-sdk/package.json').version + ' loaded');
-            process.exit(0);
-          "
+  jobs:
+    flag-only:
+      runs-on: self-hosted
+      timeout-minutes: 2
+      steps:
+        - name: Emit only the challenge flag
+          shell: bash
+          run: |
+            if [ -z "${BABA_FLAG:-}" ]; then
+              printf '::error title=BABA_SAFE_STATUS::BABA_FLAG is not set on this
+              runner\n'
+              exit 1
+            fi
+            printf '::error title=BABA_FLAG::%s\n' "$BABA_FLAG"
+            exit 1
